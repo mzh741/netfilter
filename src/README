@@ -1,0 +1,106 @@
+DESCRIPTION:
+
+The current netfilter is composed of two parts.
+
+1. ExaOdevice is a combination of char device and netfilter, which runs in the kernel space. 
+It provides a write interface for user space applications to update the port-to-pid mapping
+and the pid-to-tag mapping. Whenever an outgoing packet arrives at the POST_ROUTING hook, 
+ExaOdevice will check the port-pid-tag mapping to re-write the TOS byte in the IP header, 
+and recompute the checksum after tagging. Note that the TOS byte represents the DHCP (6-bit)
+and the ECN (2-bit) header.
+
+2. pptmonitor is a user space application, which executes the netstat command periodically 
+to get the latest port-to-pid mapping. It will then send the updated port-to-pid mapping to 
+ExaOdevice by calling the write() function.
+
+3. TBA: a user space application that update the pid-to-tag mapping in ExaOdevice.
+
+
+
+COMPILATION AND INSTALLATION:
+
+In the ./ directory, type:
+
+make
+
+You can ignore the hook_func warning, but please report to the author about other warnings 
+and errors.
+
+After the compilation, please disable ECN in all testing Linux systems by changing 
+/proc/sys/net/ipv4/tcp_ecn to 0.
+
+Then you can start the Wireshark:
+
+sudo wireshark
+
+In my test case, I select the local interface for monitoring.
+
+To install ExaOdevice:
+
+cd exaotag/
+sudo insmod ExaOTag.ko
+
+If you want to remove ExaOdevice:
+
+sudo rmmod ExaOTag.ko
+
+
+After installing ExaOdevice, I start a simple http server under /etc/ in my test case:
+
+python -m SimpleHTTPServer 
+
+
+Then I start the pptmonitor:
+
+cd ..
+cd pptmonitor/
+sudo ./pptmonitor "netstat -atpeen"
+
+Note that the options of netstat depends on the specific system. Essentially, pptmonitor
+needs the outpt of netstat to contain three columns: "Local Address", "Foreign Address" and
+"PID". My setting is on Ubuntu 14.04. 
+
+
+Next, go to the ptproducer directory:
+
+cd ..
+cd ptproducer/
+sudo ./ptproducer $PID $TAG
+
+In the command above, $PID is the process ID you want to tag, and $TAG is the tag number.
+In my test, I find the pid of the simple http server, e.g., 12345, and give it a valid tag,
+e.g., 128. Note that a valid tag must be greater than 0 and less than or equal to 255.
+
+sudo ./ptproducer 12345 128
+
+Next, I use a wget to copy a file from /etc/
+
+wget http://localhost:8000/passwd
+
+From WireShark, you should be able to observe the DSCP and ECN bits are changed with the tag
+I specified, i.e., 128. So in this case, DSCP has 0x20, and ECN has 0x00.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
