@@ -29,6 +29,9 @@ and errors.
 After the compilation, please disable ECN in all testing Linux systems by changing 
 /proc/sys/net/ipv4/tcp_ecn to 0.
 
+sudo bash -c "echo 0 > /proc/sys/net/ipv4/tcp_ecn"
+
+
 Then you can start the Wireshark:
 
 sudo wireshark

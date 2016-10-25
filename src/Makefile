@@ -15,6 +15,6 @@ default:
 	gcc -o $(PT_PRODUCER_DIR)/$(PT_PRODUCER) $(PT_PRODUCER_DIR)/$(PT_PRODUCER).c -I. -lrt
 	$(MAKE) -C $(KDIR) SUBDIRS=$(MPWD) modules
 clean:
-	rm -f $(MONITOR_DIR)/$(PRODUCER) $(MONITOR_DIR)/$(CONSUMER)
+	rm -f $(MONITOR_DIR)/$(PRODUCER) $(MONITOR_DIR)/$(CONSUMER) $(PT_PRODUCER_DIR)/$(PT_PRODUCER)
 	rm -f $(COMMON)/niciplist $(COMMON)/sysspec.h
 	$(MAKE) -C $(KDIR) SUBDIRS=$(MPWD) clean
