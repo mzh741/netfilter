@@ -32,10 +32,11 @@ int main(int argc, char *argv[]) {
 	char *pp_name = "/port_to_pid";
 	int pp_shm_fd;
 #endif
-
+	
 	unsigned long local_port_to_pid[NIC_NUM][PORT_NUM];
 	unsigned long pp_table_size = sizeof(unsigned long)*NIC_NUM*PORT_NUM;
 	int fd, ret;
+	unsigned long update_interval = DEFAULT_UPDATE_INTERVAL;
 //	memset(local_port_to_pid, 0, pp_table_size);
 
 #ifdef PPT_DEBUG
@@ -55,6 +56,12 @@ int main(int argc, char *argv[]) {
 		printf("Fail to open ExaOdevice. Abort.\n");
 	}
 
+	if (argc == 4) {
+		if (!strcmp(argv[2], "-time")){
+			update_interval = strtol(argv[3], NULL, 10);
+		}
+	}
+
 	while(1) {
 		//flush the table every time. 
 		//TODO: is there a better way?
@@ -64,8 +71,9 @@ int main(int argc, char *argv[]) {
 #ifdef PPT_DEBUG
 		memcpy(shared_port_to_pid, local_port_to_pid, pp_table_size);
 		perror(NULL);
-		print_port_to_pid(local_port_to_pid, nic_ip);
 #endif
+		print_port_to_pid(local_port_to_pid, nic_ip);
+
 
 		ret = write(fd, local_port_to_pid, WRITE_FULL_PORT_TO_PID);
 		if (ret < 0) {
@@ -74,7 +82,7 @@ int main(int argc, char *argv[]) {
 #ifdef PPT_DEBUG
 		break;
 #endif
-		sleep(UPDATE_INTERVAL);
+		sleep(update_interval);
 	}
 }
 

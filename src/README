@@ -74,7 +74,7 @@ In the command above, $PID is the process ID you want to tag, and $TAG is the ta
 In my test, I find the pid of the simple http server, e.g., 12345, and give it a valid tag,
 e.g., 128. Note that a valid tag must be greater than 0 and less than or equal to 255.
 
-sudo ./ptproducer 12345 128
+sudo ./ptproducer add 12345 128
 
 Next, I use a wget to copy a file from /etc/
 
