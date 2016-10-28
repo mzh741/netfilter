@@ -89,6 +89,7 @@ unsigned int hook_func(unsigned int hooknum,
 #endif
 		
 		port = ntohs(tcp_header->source);
+//		printk(KERN_INFO "got a TCP packet with srcIP %s\n", src_ip);
 #ifdef DEBUG
 		printk(KERN_INFO "port: %d\n", port);
 		printk(KERN_INFO "CHECKSUM before: %x3", ip_header->check);
@@ -99,14 +100,16 @@ unsigned int hook_func(unsigned int hooknum,
 	
 		if (pid > 0 ) {//pid 0 is reserved by system
 			tag = *(pid_to_tag+pid);
+			printk(KERN_INFO "pid > 0, ip: %s, pid: %lu, port: %d, new tag: %04x", src_ip, pid, port, tag);
 		}
 		else {
 			tag = 0;
+			printk(KERN_INFO "pid is 0,ip: %s, pid: %lu, port: %d, new tag: %04x", src_ip, pid, port, tag);
 		}
 
-#ifdef DEBUG
-		printk(KERN_INFO "new tag is: %04x", tag);
-#endif
+//#ifdef DEBUG
+//		printk(KERN_INFO "new tag is: %04x", tag);
+//#endif
 		ip_header->tos = tag;
 		ip_send_check(ip_header);
 

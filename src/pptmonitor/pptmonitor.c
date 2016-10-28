@@ -21,6 +21,7 @@ void get_nic_ip(char *nic_ip[], int nic_num);
 int get_pos(char *line, char *mark);
 int get_colon_pos(char *line, int start_pos, int end_pos);
 unsigned int get_port(char *line, int start_pos);
+unsigned int get_ipv6_port(char *line, int start_pos, int end_pos);
 unsigned long get_pid(char *line, int start_pos);
 void get_local_port_to_pid(unsigned long port_to_pid[NIC_NUM][PORT_NUM], char *cmd, char *nic_ip[]);
 void print_port_to_pid(unsigned long port_to_pid[NIC_NUM][PORT_NUM], char *nic_ip[]);
@@ -107,6 +108,19 @@ int get_colon_pos(char *line, int start_pos, int end_pos) {
 unsigned int get_port(char *line, int start_pos) {
 	return strtol(&line[start_pos], NULL, 10);
 }
+
+unsigned int get_ipv6_port(char *line, int start_pos, int end_pos) {
+	int i;
+
+	for (i = start_pos-1; i >= end_pos; i--) {
+		if (line[i] == ':' && i ) {
+			return strtol(&line[i+1], NULL, 10);
+		}
+	}
+
+	return INVALID_PORT;
+}
+
 
 unsigned long get_pid(char *line, int start_pos) {
 	unsigned long pid = strtol(&line[start_pos], NULL, 10);
@@ -206,7 +220,16 @@ void get_local_port_to_pid(unsigned long port_to_pid[NIC_NUM][PORT_NUM], char *c
 
 			pos_colon = get_colon_pos(line, pos_local, pos_foreign);
 			if ( pos_colon == INVALID_POS) {//this is an IPv6 address, ignore the whole line
-				continue;
+				port = get_ipv6_port(line, pos_foreign, pos_local);
+				if (port != INVALID_PORT) {
+					pid = get_pid(line, pos_pid);
+					for (i = 0; i < NIC_NUM; i++) {
+						if (port_to_pid[i][port] == 0) {
+							//only insert when this port->pid mapping does not exist in previous IPv4 entries
+							port_to_pid[i][port] = pid;
+						}
+					}
+				}
 			}
 			else {
 				ipv4_addr = (char *) malloc(pos_colon-pos_local);
